@@ -1,11 +1,21 @@
--- [[ V1 320 UI 核心模塊 ]]
-local UI_Mod = {}
-local S = setmetatable({}, {__index = function(t, k) return game:GetService(k) end})
-local CG, UIS = S.CoreGui, S.UserInputService
+local UI_Lib = {}
 
-function UI_Mod:Build(PrimaryColor)
-    -- 這裡存放 Lib:Create, ApplyDrag, 以及建立 320 小按鈕與主介面的代碼
-    print("320 UI 系統已從雲端啟動")
-    -- (貼入 UI 相關代碼...)
+function UI_Lib:Init(Data)
+    print("[UI] 正在初始化 320 懸浮按鈕系統...")
+    
+    -- 1. 這裡會寫入你原本那一萬字的 UI 庫原始碼
+    -- 2. 建立 320 懸浮按鈕邏輯
+    -- 3. 綁定按鈕點擊打開主面板
+    
+    -- 測試代碼 (確保運作)
+    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+    local MainBtn = Instance.new("TextButton", ScreenGui)
+    MainBtn.Size = UDim2.new(0, 50, 0, 50)
+    MainBtn.Position = UDim2.new(0.1, 0, 0.5, 0)
+    MainBtn.Text = "320"
+    MainBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    
+    print("[UI] V1 介面已就緒，版本：" .. Data.Ver)
 end
-return UI_Mod
+
+return UI_Lib
