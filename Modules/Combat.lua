@@ -1,22 +1,27 @@
-local Combat = {Settings = {Size = 10, Enabled = false}}
+local Combat = {}
+local Settings = {Size = 15, Enabled = false}
 
-function Combat:ToggleHitbox(state, size)
-    self.Settings.Enabled = state
-    self.Settings.Size = size or 10
-    
-    task.spawn(function()
-        while self.Settings.Enabled do
-            for _, v in pairs(game.Players:GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = v.Character.HumanoidRootPart
-                    hrp.Size = Vector3.new(self.Settings.Size, self.Settings.Size, self.Settings.Size)
-                    hrp.Transparency = 0.8
-                    hrp.CanCollide = false
+function Combat:ToggleHitbox(state)
+    Settings.Enabled = state
+end
+
+-- 新增：讓 UI 可以隨時調整大小
+function Combat:UpdateSize(newSize)
+    Settings.Size = newSize
+end
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if Settings.Enabled then
+            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+                if v.Name ~= game.Players.LocalPlayer.Name and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(Settings.Size, Settings.Size, Settings.Size)
+                    v.Character.HumanoidRootPart.Transparency = 0.7
+                    v.Character.HumanoidRootPart.CanCollide = false
                 end
             end
-            task.wait(0.5)
         end
-    end)
-end
+    end
+end)
 
 return Combat
