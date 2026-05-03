@@ -1,23 +1,22 @@
-local Movement = {
-    SavedPositions = {}, -- 格式: { ["名稱"] = Vector3 }
-    FlySpeed = 100
-}
+local Movement = {SavedPoints = {}}
 
--- 儲存當前座標
-function Movement:SaveCurrentPos(name)
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        self.SavedPositions[name] = char.HumanoidRootPart.Position
-        print("[320] 已儲存座標: " .. name)
+-- 座標儲存與命名
+function Movement:SaveLocation(name)
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
+    self.SavedPoints[name] = hrp.CFrame
+    print("已儲存座標: " .. name)
+end
+
+-- 瞬移至座標
+function Movement:Teleport(name)
+    if self.SavedPoints[name] then
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = self.SavedPoints[name]
     end
 end
 
--- 瞬移到指定名稱的座標
-function Movement:TeleportTo(name)
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") and self.SavedPositions[name] then
-        char.HumanoidRootPart.CFrame = CFrame.new(self.SavedPositions[name])
-    end
+-- 超級飛行 (防回彈版)
+function Movement:Fly(state)
+    -- 此處填入之前討論的 BodyVelocity 穩定飛行代碼...
 end
 
 return Movement
