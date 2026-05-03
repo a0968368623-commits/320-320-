@@ -1,59 +1,47 @@
--- 1. 主介面框架 (確保高度足夠)
+local UI_Lib = {}
+
+local UIS = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+function UI_Lib:Init(Data)
+    local ScreenGui = Instance.new("ScreenGui", CoreGui)
+    ScreenGui.Name = "320_Hitbox_UI"
+
+    -- 主框架
     local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Size = UDim2.new(0, 400, 0, 320) -- 稍微調高一點
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -160)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    
-    -- 2. 功能排版容器 (自動排列)
-    local Container = Instance.new("ScrollingFrame", MainFrame)
-    Container.Size = UDim2.new(1, -20, 1, -60)
-    Container.Position = UDim2.new(0, 10, 0, 50)
-    Container.BackgroundTransparency = 1
-    Container.ScrollBarThickness = 3
-    Container.CanvasSize = UDim2.new(0, 0, 0, 400) -- 確保畫布夠長可以滾動
+    MainFrame.Size = UDim2.new(0, 300, 0, 150)
+    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.Active = true
+    MainFrame.Draggable = true 
+    Instance.new("UICorner", MainFrame)
 
-    local Layout = Instance.new("UIListLayout", Container)
-    Layout.Padding = UDim.new(0, 8)
-    Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    -- 標題
+    local Title = Instance.new("TextLabel", MainFrame)
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.Text = "範圍調整介面"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
 
-    -- 3. 打人範圍開關 (Hitbox Toggle)
-    local HitboxToggle = Instance.new("TextButton", Container)
-    HitboxToggle.Size = UDim2.new(0, 360, 0, 50)
-    HitboxToggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    HitboxToggle.Text = "打人範圍: 關閉"
-    HitboxToggle.TextColor3 = Color3.new(1, 0, 0)
-    HitboxToggle.Font = Enum.Font.GothamBold
-    HitboxToggle.TextSize = 16
-    Instance.new("UICorner", HitboxToggle)
+    -- 範圍輸入框
+    local SizeInput = Instance.new("TextBox", MainFrame)
+    SizeInput.Size = UDim2.new(0, 260, 0, 45)
+    SizeInput.Position = UDim2.new(0.5, -130, 0, 60)
+    SizeInput.PlaceholderText = "輸入大小 (例如: 20)"
+    SizeInput.Text = ""
+    SizeInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    SizeInput.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", SizeInput)
 
-    local hb_on = false
-    HitboxToggle.MouseButton1Click:Connect(function()
-        hb_on = not hb_on
-        HitboxToggle.Text = "打人範圍: " .. (hb_on and "開啟" or "關閉")
-        HitboxToggle.TextColor3 = hb_on and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-        
-        -- 調用 Combat 模組
-        if Data.Combat and Data.Combat.ToggleHitbox then
-            Data.Combat:ToggleHitbox(hb_on)
+    -- 當輸入完成時 (按下 Enter 或點擊外面)
+    SizeInput.FocusLost:Connect(function(enterPressed)
+        local val = tonumber(SizeInput.Text)
+        if val and Data.Combat then
+            Data.Combat:UpdateSize(val)
+            print("[320] 範圍已更新為: " .. val)
         end
     end)
+end
 
-    -- 4. 範圍數值調整 (TextBox)
-    local RangeInput = Instance.new("TextBox", Container)
-    RangeInput.Size = UDim2.new(0, 360, 0, 50)
-    RangeInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    RangeInput.PlaceholderText = "在此輸入範圍數字 (例如: 20)"
-    RangeInput.Text = ""
-    RangeInput.TextColor3 = Color3.new(1, 1, 1)
-    RangeInput.Font = Enum.Font.Gotham
-    RangeInput.TextSize = 14
-    Instance.new("UICorner", RangeInput)
-
-    RangeInput.FocusLost:Connect(function(enterPressed)
-        local num = tonumber(RangeInput.Text)
-        if num and Data.Combat and Data.Combat.UpdateSize then
-            Data.Combat:UpdateSize(num)
-            print("[320] 範圍已設定為: " .. num)
-        end
-    end)
+return UI_Lib
