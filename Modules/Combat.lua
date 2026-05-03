@@ -1,24 +1,20 @@
-local Combat = {
-    Settings = {
-        HitboxSize = 10,
-        HitboxTransparency = 0.7,
-        Enabled = false
-    }
-}
+local Combat = {Settings = {Size = 10, Enabled = false}}
 
-function Combat:Init()
-    game:GetService("RunService").Stepped:Connect(function()
-        if self.Settings.Enabled then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character then
-                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp then
-                        hrp.Size = Vector3.new(self.Settings.HitboxSize, self.Settings.HitboxSize, self.Settings.HitboxSize)
-                        hrp.Transparency = self.Settings.HitboxTransparency
-                        hrp.CanCollide = false -- 防止碰撞導致回彈
-                    end
+function Combat:ToggleHitbox(state, size)
+    self.Settings.Enabled = state
+    self.Settings.Size = size or 10
+    
+    task.spawn(function()
+        while self.Settings.Enabled do
+            for _, v in pairs(game.Players:GetPlayers()) do
+                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = v.Character.HumanoidRootPart
+                    hrp.Size = Vector3.new(self.Settings.Size, self.Settings.Size, self.Settings.Size)
+                    hrp.Transparency = 0.8
+                    hrp.CanCollide = false
                 end
             end
+            task.wait(0.5)
         end
     end)
 end
