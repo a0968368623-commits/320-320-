@@ -1,80 +1,120 @@
 local UI_Lib = {}
-local S = {CG = game:GetService("CoreGui"), UIS = game:GetService("UserInputService"), RS = game:GetService("RunService")}
+local S = {
+    CG = game:GetService("CoreGui"),
+    UIS = game:GetService("UserInputService"),
+    RS = game:GetService("RunService"),
+    Tween = game:GetService("TweenService")
+}
 
 function UI_Lib:Init(Data)
-    -- 1. 主框架與拖動 (保持不變)
+    -- 1. 建立 UI 載體
     local ScreenGui = Instance.new("ScreenGui", S.CG)
+    ScreenGui.Name = "320_Master_V1"
+    ScreenGui.ResetOnSpawn = false
+
+    -- 2. 建立「320」懸浮小按鈕 (收納用)
+    local MiniBtn = Instance.new("TextButton", ScreenGui)
+    MiniBtn.Name = "320_Mini"
+    MiniBtn.Size = UDim2.new(0, 50, 0, 50)
+    MiniBtn.Position = UDim2.new(0, 50, 0, 50) -- 初始位置
+    MiniBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MiniBtn.Text = "320"
+    MiniBtn.TextColor3 = Color3.new(1, 1, 1)
+    MiniBtn.Font = Enum.Font.GothamBold
+    MiniBtn.TextSize = 18
+    MiniBtn.Visible = false -- 初始隱藏，打開 UI 後才有用
+    
+    -- 讓小按鈕也有圓角和 RGB
+    local MiniCorner = Instance.new("UICorner", MiniBtn)
+    MiniCorner.CornerRadius = ToolResimen and UDim.new(0, 8) or UDim.new(0, 25) -- 圓形
+    local MiniStroke = Instance.new("UIStroke", MiniBtn)
+    MiniStroke.Thickness = 2
+
+    -- 3. 主介面 (MainFrame)
     local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Size = UDim2.new(0, 500, 0, 350)
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 550, 0, 380)
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
     MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     MainFrame.Active = true
-    MainFrame.Draggable = true 
+    MainFrame.Draggable = true -- 簡單拖拽
 
-    -- RGB 邊框
-    local Stroke = Instance.new("UIStroke", MainFrame)
-    Stroke.Thickness = 2
+    local MainStroke = Instance.new("UIStroke", MainFrame)
+    MainStroke.Thickness = 2
+
+    -- 4. 調整大小功能 (Resize Handle)
+    local ResizeHandle = Instance.new("TextButton", MainFrame)
+    ResizeHandle.Size = UDim2.new(0, 15, 0, 15)
+    ResizeHandle.Position = UDim2.new(1, -15, 1, -15)
+    ResizeHandle.Text = "↘"
+    ResizeHandle.BackgroundTransparency = 1
+    ResizeHandle.TextColor3 = Color3.new(1, 1, 1)
+
+    local resising = false
+    ResizeHandle.MouseButton1Down:Connect(function() resising = true end)
+    S.UIS.InputEnded:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then resising = false end 
+    end)
+    S.UIS.InputChanged:Connect(function(input)
+        if resising and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = S.UIS:GetMouseLocation()
+            local framePos = MainFrame.AbsolutePosition
+            local newSize = UDim2.new(0, mousePos.X - framePos.X, 0, (mousePos.Y - 36) - framePos.Y)
+            MainFrame.Size = newSize
+        end
+    end)
+
+    -- 5. RGB 動效 (同步小按鈕與主介面)
     task.spawn(function()
         while true do
             local hue = tick() % 5 / 5
-            Stroke.Color = Color3.fromHSV(hue, 0.8, 1)
+            local color = Color3.fromHSV(hue, 0.8, 1)
+            MainStroke.Color = color
+            MiniStroke.Color = color
             task.wait()
         end
     end)
 
-    -- 2. 左側選單 (SideBar)
-    local SideBar = Instance.new("Frame", MainFrame)
-    SideBar.Size = UDim2.new(0, 130, 1, 0)
-    SideBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    -- 6. 收納/顯示邏輯 (切換 320 按鈕與介面)
+    local function ToggleUI()
+        local isMainVisible = MainFrame.Visible
+        MainFrame.Visible = not isMainVisible
+        MiniBtn.Visible = isMainVisible
+        print(isMainVisible and "[320] 介面已最小化" or "[320] 介面已還原")
+    end
 
-    -- 3. 右側主內容區 (這個就是你影片中空的地方！)
-    local Container = Instance.new("Frame", MainFrame)
-    Container.Name = "Container"
-    Container.Position = UDim2.new(0, 140, 0, 10)
-    Container.Size = UDim2.new(1, -150, 1, -20)
-    Container.BackgroundTransparency = 1
+    -- 小按鈕點擊：還原介面
+    MiniBtn.MouseButton1Click:Connect(ToggleUI)
+    
+    -- 主介面關閉按鈕 (修復關閉 Bug，改為縮小至 320 按鈕)
+    local CloseBtn = Instance.new("TextButton", MainFrame)
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+    CloseBtn.Text = "—" -- 最小化圖標
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    CloseBtn.TextColor3 = Color3.new(1, 1, 1)
+    CloseBtn.MouseButton1Click:Connect(ToggleUI)
 
-    -- [ 功能頁面 1: 戰鬥 ]
-    local CombatPage = Instance.new("ScrollingFrame", Container)
-    CombatPage.Size = UDim2.new(1, 0, 1, 0)
-    CombatPage.BackgroundTransparency = 1
-    CombatPage.Visible = false -- 預設隱藏
-
-    local HitboxTitle = Instance.new("TextLabel", CombatPage)
-    HitboxTitle.Size = UDim2.new(1, 0, 0, 30)
-    HitboxTitle.Text = "—— 戰鬥系統 (Combat) ——"
-    HitboxTitle.TextColor3 = Color3.new(1, 1, 1)
-    HitboxTitle.BackgroundTransparency = 1
-
-    local ToggleHitbox = Instance.new("TextButton", CombatPage)
-    ToggleHitbox.Position = UDim2.new(0, 0, 0, 40)
-    ToggleHitbox.Size = UDim2.new(1, 0, 0, 40)
-    ToggleHitbox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    ToggleHitbox.Text = "開啟巨大判定 (Hitbox): [ 關閉 ]"
-    ToggleHitbox.TextColor3 = Color3.new(1, 1, 1)
-
-    -- 點擊邏輯
-    local hb_enabled = false
-    ToggleHitbox.MouseButton1Click:Connect(function()
-        hb_enabled = not hb_enabled
-        ToggleHitbox.Text = "開啟巨大判定 (Hitbox): [ " .. (hb_enabled and "開啟" or "關閉") .. " ]"
-        ToggleHitbox.TextColor3 = hb_enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-        
-        if Data.Combat then
-            Data.Combat:ToggleHitbox(hb_enabled, 15) -- 調用 Combat 模組
+    -- 讓小按鈕也可以拖動 (防止擋到遊戲 UI)
+    local miniDragging, miniDragStart, miniStartPos
+    MiniBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            miniDragging = true
+            miniDragStart = input.Position
+            miniStartPos = MiniBtn.Position
         end
     end)
-
-    -- 4. 按鈕切換邏輯
-    local CombatBtn = Instance.new("TextButton", SideBar)
-    CombatBtn.Size = UDim2.new(0.9, 0, 0, 35)
-    CombatBtn.Position = UDim2.new(0.05, 0, 0, 50)
-    CombatBtn.Text = "⚔️ 戰鬥系統"
-    CombatBtn.MouseButton1Click:Connect(function()
-        CombatPage.Visible = true -- 點了才顯示右邊內容
+    S.UIS.InputChanged:Connect(function(input)
+        if miniDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - miniDragStart
+            MiniBtn.Position = UDim2.new(miniStartPos.X.Scale, miniStartPos.X.Offset + delta.X, miniStartPos.Y.Scale, miniStartPos.Y.Offset + delta.Y)
+        end
+    end)
+    S.UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then miniDragging = false end
     end)
 
-    print("✅ V120 功能頁面已裝載")
+    print("✅ [320 Master] 旗艦級載入完成，按下介面 [—] 號即可收起至 320 按鈕")
 end
 
 return UI_Lib
