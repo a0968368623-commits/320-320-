@@ -1,39 +1,36 @@
--- [[ 320 Master 雲端主控 ]]
--- 確保網址開頭是 https 並以 / 結尾
-local BaseURL = "https://raw.githubusercontent.com/a0968368623-commits/320-320-/main/Modules/"
+-- [[ 320 MASTER 啟動器 ]]
+local Repo = "https://raw.githubusercontent.com/a0968368623-commits/320-320-/main/Modules/"
 
-local function GetCloud(File)
-    local success, content = pcall(function()
-        return game:HttpGet(BaseURL .. File .. "?t=" .. os.time())
+-- 1. 下載並讀取模組 (使用 loadstring)
+local function LoadModule(Name)
+    local Success, Result = pcall(function()
+        return loadstring(game:HttpGet(Repo .. Name .. ".lua"))()
     end)
-
-    if success and content then
-        local func, err = loadstring(content)
-        if func then
-            print("[320] 成功載入檔案: " .. File)
-            return func()
-        else
-            warn("[320] 檔案語法錯誤 (" .. File .. "): " .. tostring(err))
-        end
+    if Success then
+        print("[320] 成功載入模組: " .. Name)
+        return Result
     else
-        warn("[320] 無法連線至 GitHub 或找不到檔案: " .. File)
+        warn("[320] 載入模組失敗: " .. Name .. " | 錯誤: " .. Result)
+        return nil
     end
-    return nil
 end
 
--- 按順序抓取模組
-local UI = GetCloud("UI_Library.lua")
-local Move = GetCloud("Movement.lua")
-local Combat = GetCloud("Combat.lua")
+-- 2. 抓取所有功能模組
+local Combat = LoadModule("Combat")
+local Move = LoadModule("Movement")
+local ESP = LoadModule("Visuals")
+local UI = LoadModule("UI_Library")
 
--- 檢查是否全部成功
-if UI and Move and Combat then
-    -- 初始化 UI 並傳入功能模組
+-- 3. 確保 UI 載入後進行初始化
+if UI then
+    -- 將 Combat 等模組傳入 UI，這樣介面上的按鈕才能控制功能
     UI:Init({
-        MoveFunc = Move,
-        Combat = Combat
+        Combat = Combat,
+        Movement = Move,
+        Visuals = ESP
     })
-    print("[320] 所有模組載入完成，UI 已啟動！")
+    
+    print("[320] 所有模組載入完成，UI 已啟動")
 else
-    warn("[320] 載入中斷，請按 F9 檢查上方警告訊息")
+    print("[320] UI 庫載入失敗，無法啟動介面")
 end
