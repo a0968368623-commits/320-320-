@@ -1,33 +1,34 @@
 local Combat = {}
-local Settings = {Size = 15, Enabled = false}
+_G.HitboxEnabled = false -- 使用全域變數確保 UI 100% 能控制
+_G.HitboxSize = 15
 
--- 更新開關狀態
 function Combat:ToggleHitbox(state)
-    Settings.Enabled = state
-    -- 如果關閉開關，立即執行一次還原
+    _G.HitboxEnabled = state
+    print("Combat 模組接收到狀態:", state)
+    
+    -- 核心修復：關閉時「強制」還原所有玩家大小
     if not state then
         for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-            if v.Name ~= game.Players.LocalPlayer.Name and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1) -- 恢復 Roblox 預設大小
-                v.Character.HumanoidRootPart.Transparency = 1 -- 恢復隱形
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                v.Character.HumanoidRootPart.Transparency = 1
             end
         end
-        print("Hitbox 已關閉並恢復原狀")
     end
 end
 
--- 更新數值
 function Combat:UpdateSize(newSize)
-    Settings.Size = newSize
+    _G.HitboxSize = newSize
 end
 
--- 循環核心
+-- 循環檢查
 task.spawn(function()
-    while task.wait(0.5) do
-        if Settings.Enabled then
+    while true do
+        task.wait(0.2) -- 縮短檢查頻率，反應更快
+        if _G.HitboxEnabled then
             for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-                if v.Name ~= game.Players.LocalPlayer.Name and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                    v.Character.HumanoidRootPart.Size = Vector3.new(Settings.Size, Settings.Size, Settings.Size)
+                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                    v.Character.HumanoidRootPart.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
                     v.Character.HumanoidRootPart.Transparency = 0.7
                     v.Character.HumanoidRootPart.CanCollide = false
                 end
