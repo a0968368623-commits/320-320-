@@ -1,34 +1,25 @@
 local Combat = {}
-_G.HitboxEnabled = false
-_G.HitboxSize = 15
+local currentSize = 15 -- 預設大小
 
-function Combat:ToggleHitbox(state)
-    _G.HitboxEnabled = state
-    if not state then
-        -- 關閉時強制還原所有人大小
-        for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                v.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
-                v.Character.HumanoidRootPart.Transparency = 1
-            end
+function Combat:UpdateSize(newSize)
+    currentSize = newSize
+    -- 立即套用更新
+    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = v.Character.HumanoidRootPart
+            hrp.Size = Vector3.new(currentSize, currentSize, currentSize)
+            hrp.Transparency = 0.5 -- 稍微透明方便觀察範圍
+            hrp.CanCollide = false -- 防止碰撞造成噴飛
         end
     end
 end
 
-function Combat:UpdateSize(newSize)
-    _G.HitboxSize = newSize
-end
-
+-- 循環確保新加入的玩家也會被改變
 task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if _G.HitboxEnabled then
-            for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-                if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                    v.Character.HumanoidRootPart.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
-                    v.Character.HumanoidRootPart.Transparency = 0.7
-                    v.Character.HumanoidRootPart.CanCollide = false
-                end
+    while task.wait(1) do
+        for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.Size = Vector3.new(currentSize, currentSize, currentSize)
             end
         end
     end
