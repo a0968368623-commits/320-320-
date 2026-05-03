@@ -1,49 +1,39 @@
--- [[ 320 Master 專業版雲端加載器 - 極簡靜音版 ]]
--- 對接倉庫：a0968368623-commits / 320-320-
+-- [[ 320 Master 雲端主控 ]]
+-- 確保網址開頭是 https 並以 / 結尾
+local BaseURL = "https://raw.githubusercontent.com/a0968368623-commits/320-320-/main/Modules/"
 
-local Config = {
-    User = "a0968368623-commits",
-    Repo = "320-320-",
-    Branch = "main"
-}
+local function GetCloud(File)
+    local success, content = pcall(function()
+        return game:HttpGet(BaseURL .. File .. "?t=" .. os.time())
+    end)
 
-local BaseURL = string.format("https://raw.githubusercontent.com/%s/%s/%s/", Config.User, Config.Repo, Config.Branch)
-
-local function CloudLoad(FileName)
-    -- 靜默下載，除非錯誤否則不輸出白字
-    local success, content = pcall(game.HttpGet, game, BaseURL .. FileName .. "?t=" .. os.time())
-    
     if success and content then
         local func, err = loadstring(content)
         if func then
-            return func() 
+            print("[320] 成功載入檔案: " .. File)
+            return func()
         else
-            warn("[320 Error] " .. FileName .. " 語法錯誤") -- 僅保留紅字警告
+            warn("[320] 檔案語法錯誤 (" .. File .. "): " .. tostring(err))
         end
     else
-        warn("[320 Error] 無法讀取 " .. FileName)
+        warn("[320] 無法連線至 GitHub 或找不到檔案: " .. File)
     end
     return nil
 end
 
--- 啟動程序
-task.spawn(function()
-    -- 僅在啟動時顯示一行，代表腳本有在跑
-    print("✨ [V1] 320 Master 加載中...")
+-- 按順序抓取模組
+local UI = GetCloud("UI_Library.lua")
+local Move = GetCloud("Movement.lua")
+local Combat = GetCloud("Combat.lua")
 
-    local UI_Mod = CloudLoad("Modules/UI_Library.lua")
-    local Combat_Mod = CloudLoad("Modules/Combat.lua")
-    local Move_Mod = CloudLoad("Modules/Movement.lua")
-
-    if UI_Mod then
-        UI_Mod:Init({
-            Combat = Combat_Mod,
-            Movement = Move_Mod,
-            Version = "1.0.5"
-        })
-        -- 加載完成後顯示一條確認訊息
-        print("✅ [V1] 腳本啟動成功，版本: 1.0.5")
-    else
-        warn("❌ [V1] 核心組件損壞，啟動失敗。")
-    end
-end)
+-- 檢查是否全部成功
+if UI and Move and Combat then
+    -- 初始化 UI 並傳入功能模組
+    UI:Init({
+        MoveFunc = Move,
+        Combat = Combat
+    })
+    print("[320] 所有模組載入完成，UI 已啟動！")
+else
+    warn("[320] 載入中斷，請按 F9 檢查上方警告訊息")
+end
