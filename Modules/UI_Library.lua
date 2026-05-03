@@ -1,39 +1,35 @@
 local UI_Lib = {}
-local S = {
-    CG = game:GetService("CoreGui"), 
-    UIS = game:GetService("UserInputService"), 
-    RS = game:GetService("RunService")
-}
+local S = {CG = game:GetService("CoreGui"), UIS = game:GetService("UserInputService")}
 
 function UI_Lib:Init(Data)
     local ScreenGui = Instance.new("ScreenGui", S.CG)
-    ScreenGui.Name = "320_System_V2"
+    ScreenGui.Name = "320_Master_System"
 
-    -- 【320 小按鈕】
+    -- 【320 圓形啟動按鈕】
     local MiniBtn = Instance.new("TextButton", ScreenGui)
     MiniBtn.Size = UDim2.new(0, 60, 0, 60)
-    MiniBtn.Position = UDim2.new(0, 20, 0, 20)
+    MiniBtn.Position = UDim2.new(0, 50, 0, 50)
     MiniBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     MiniBtn.Text = "320"
     MiniBtn.TextColor3 = Color3.new(1, 1, 1)
     MiniBtn.Font = Enum.Font.GothamBold
-    MiniBtn.Visible = false
+    MiniBtn.Visible = false -- 初始隱藏
     Instance.new("UICorner", MiniBtn).CornerRadius = UDim.new(1, 0)
     local MiniStroke = Instance.new("UIStroke", MiniBtn)
     MiniStroke.Thickness = 2
 
-    -- 【主介面】
+    -- 【主介面 Frame】
     local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Size = UDim2.new(0, 500, 0, 350)
-    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.Size = UDim2.new(0, 450, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     MainFrame.Active = true
-    MainFrame.Draggable = true -- 開啟移動功能
+    MainFrame.Draggable = true -- 讓介面可以滑鼠拖動
 
     local MainStroke = Instance.new("UIStroke", MainFrame)
     MainStroke.Thickness = 2
 
-    -- 最小化/還原切換
+    -- 最小化功能 (切換 320 按鈕與主介面)
     MiniBtn.MouseButton1Click:Connect(function()
         MainFrame.Visible = true
         MiniBtn.Visible = false
@@ -43,65 +39,62 @@ function UI_Lib:Init(Data)
     CloseBtn.Size = UDim2.new(0, 30, 0, 30)
     CloseBtn.Position = UDim2.new(1, -35, 0, 5)
     CloseBtn.Text = "—"
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     CloseBtn.TextColor3 = Color3.new(1, 1, 1)
     CloseBtn.MouseButton1Click:Connect(function()
         MainFrame.Visible = false
         MiniBtn.Visible = true
     end)
 
-    -- 【右側內容區】
+    -- 【功能容器】
     local Container = Instance.new("Frame", MainFrame)
-    Container.Position = UDim2.new(0, 140, 0, 40)
-    Container.Size = UDim2.new(1, -150, 1, -50)
+    Container.Position = UDim2.new(0, 20, 0, 40)
+    Container.Size = UDim2.new(1, -40, 1, -60)
     Container.BackgroundTransparency = 1
 
-    -- 1. Hitbox 總開關
+    -- 1. Hitbox 開關按鈕
     local ToggleBtn = Instance.new("TextButton", Container)
-    ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
-    ToggleBtn.Text = "Hitbox 開關: [ 關閉 ]"
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    ToggleBtn.Size = UDim2.new(1, 0, 0, 45)
+    ToggleBtn.Text = "Hitbox: 關閉"
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     ToggleBtn.TextColor3 = Color3.new(1, 0, 0)
-    
-    local hb_enabled = false
+
+    local hb_state = false
     ToggleBtn.MouseButton1Click:Connect(function()
-        hb_enabled = not hb_enabled
-        ToggleBtn.Text = "Hitbox 開關: [ " .. (hb_enabled and "開啟" or "關閉") .. " ]"
-        ToggleBtn.TextColor3 = hb_enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-        if Data.Combat then Data.Combat:ToggleHitbox(hb_enabled) end
+        hb_state = not hb_state
+        ToggleBtn.Text = "Hitbox: " .. (hb_state and "開啟" or "關閉")
+        ToggleBtn.TextColor3 = hb_state and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+        if Data.Combat then Data.Combat:ToggleHitbox(hb_state) end
     end)
 
-    -- 2. 數字輸入框 (TextBox)
-    local InputLabel = Instance.new("TextLabel", Container)
-    InputLabel.Position = UDim2.new(0, 0, 0, 60)
-    InputLabel.Size = UDim2.new(1, 0, 0, 30)
-    InputLabel.Text = "輸入 Hitbox 數值 (例如: 20)"
-    InputLabel.TextColor3 = Color3.new(1, 1, 1)
-    InputLabel.BackgroundTransparency = 1
+    -- 2. 數字輸入框 (調整範圍)
+    local Label = Instance.new("TextLabel", Container)
+    Label.Position = UDim2.new(0, 0, 0, 60)
+    Label.Size = UDim2.new(1, 0, 0, 30)
+    Label.Text = "輸入打人範圍數字 (輸入後按 Enter)"
+    Label.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    Label.BackgroundTransparency = 1
 
-    local SizeInput = Instance.new("TextBox", Container)
-    SizeInput.Position = UDim2.new(0, 0, 0, 90)
-    SizeInput.Size = UDim2.new(1, 0, 0, 40)
-    SizeInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    SizeInput.Text = "15" -- 預設數值
-    SizeInput.TextColor3 = Color3.new(0, 1, 1)
-    SizeInput.Font = Enum.Font.Gotham
-    SizeInput.TextSize = 20
+    local TextBox = Instance.new("TextBox", Container)
+    TextBox.Position = UDim2.new(0, 0, 0, 95)
+    TextBox.Size = UDim2.new(1, 0, 0, 40)
+    TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TextBox.Text = "15"
+    TextBox.TextColor3 = Color3.new(0, 1, 1)
+    TextBox.Font = Enum.Font.Gotham
+    TextBox.TextSize = 18
 
-    -- 當輸入框內容改變且按下 Enter 時觸發
-    SizeInput.FocusLost:Connect(function(enterPressed)
-        local val = tonumber(SizeInput.Text)
-        if val then
-            if Data.Combat and Data.Combat.UpdateSize then
-                Data.Combat:UpdateSize(val)
-                print("Hitbox 範圍已設定為: " .. val)
-            end
+    TextBox.FocusLost:Connect(function(enterPressed)
+        local num = tonumber(TextBox.Text)
+        if num then
+            if Data.Combat then Data.Combat:UpdateSize(num) end
+            print("已設定 Hitbox 大小為:", num)
         else
-            SizeInput.Text = "請輸入數字"
+            TextBox.Text = "請輸入數字!"
         end
     end)
 
-    -- RGB 循環特效
+    -- RGB 特效
     task.spawn(function()
         while true do
             local color = Color3.fromHSV(tick() % 5 / 5, 0.8, 1)
